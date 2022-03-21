@@ -121,12 +121,9 @@ namespace JPEG;
      {
          var quantizationMatrix = QuantizationMatrixHelper.GetQuantizationMatrix(quality);
 
-         for(var y = 0; y < DCT.Size; y++)
+         for (var i = 0; i < DCT.SquareSize; i++)
          {
-             for(var x = 0; x < DCT.Size; x++)
-             {
-                 output[y * DCT.Size + x] = ((sbyte)quantizedBytes[y * DCT.Size + x]) * quantizationMatrix[y, x];//NOTE cast to sbyte not to loose negative numbers
-             }
+             output[i] = ((sbyte)quantizedBytes[i]) * quantizationMatrix[i];//NOTE cast to sbyte not to loose negative numbers
          }
      }
 }

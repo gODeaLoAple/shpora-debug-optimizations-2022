@@ -58,12 +58,14 @@ namespace JPEG.Images
                 for (var v = 0; v < bmd.Height; v++)
                 {
                     var shift = scan0 + v * stride;
+                    var offset = v * width;
                     for (var u = 0; u < bmd.Width; u++)
                     {
                         var p = shift + u * depth;
-                        pixelMap[v * width + u].R = p[0];
-                        pixelMap[v * width + u].G = p[1];
-                        pixelMap[v * width + u].B = p[2];
+                        var pixelRgb = pixelMap[offset + u];
+                        pixelRgb.R = p[0];
+                        pixelRgb.G = p[1];
+                        pixelRgb.B = p[2];
                     }
                 }
                 _bmp.UnlockBits(bmd);

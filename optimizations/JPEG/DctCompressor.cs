@@ -124,13 +124,9 @@ public class DctCompressor
     private static void PutQuantized(double[] channelFreqs, byte[] output, int quality)
     {
         var quantizationMatrix = QuantizationMatrixHelper.GetQuantizationMatrix(quality);
-        const int size = DCT.Size;
-        for(var y = 0; y < size; y++)
+        for (var i = 0; i < DCT.SquareSize; i++)
         {
-            for(var x = 0; x < size; x++)
-            {
-                output[y * size +  x] = (byte)(channelFreqs[y * size +  x] / quantizationMatrix[y, x]);
-            }
+            output[i] = (byte)(channelFreqs[i] / quantizationMatrix[i]);
         }
     }
 }
