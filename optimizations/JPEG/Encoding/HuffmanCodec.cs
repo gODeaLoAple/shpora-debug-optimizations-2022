@@ -147,7 +147,10 @@ internal static class HuffmanCodec
     private static int[] CalcFrequences(IEnumerable<byte> data)
     {
         var result = new int[byte.MaxValue + 1];
-        Parallel.ForEach(data, b => Interlocked.Increment(ref result[b]));
+        foreach (var b in data)
+        {
+            result[b]++;
+        }
         return result;
     }
 }
