@@ -86,7 +86,7 @@ namespace JPEG
                 {
                     matrix.PutPixels(compressor.PixelMap, x, y, DCT.Size, DCT.Size);
                 }
-                compressor.Compress(DCT.F, slice, selectors);
+                compressor.Compress(slice, selectors);
                 
                 compressors.Add(compressor);
             });

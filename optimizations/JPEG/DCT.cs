@@ -44,7 +44,7 @@ namespace JPEG
             }
         }
         
-        public static void DCT2D(double[] input, double[,] output)
+        public static void DCT2D(double[] input, double[] output)
         {
             for (var n = 0; n < SquareSize; n++)
             {
@@ -56,7 +56,7 @@ namespace JPEG
                     s += input[m] * CacheDtc[m + offset];
 ;               }
 
-                output[n / Size, n % Size] = s;
+                output[n] = s;
             }
         }
         

@@ -8,7 +8,7 @@ public class DctCompressor
 {
     private readonly int _quality;
     private readonly double[] _subMatrix;
-    private readonly double[,] _dctBuffer;
+    private readonly double[] _dctBuffer;
     private readonly byte[,] _bytesBuffer;
     private readonly byte[] _zigZagBuffer;
     public PixelRgb[] PixelMap { get; }
@@ -18,7 +18,7 @@ public class DctCompressor
         const int size = DCT.Size;
         _quality = quality;
         _subMatrix = new double[size * size];
-        _dctBuffer = new double[size, size];
+        _dctBuffer = new double[size * size];
         _bytesBuffer =  new byte[size, size];
         _zigZagBuffer =  new byte[size * size];
         PixelMap = new PixelRgb[size * size];
@@ -33,14 +33,14 @@ public class DctCompressor
 
 
 
-    public void Compress(double[,] cacheG, Span<byte> memory, IEnumerable<Func<PixelRgb, double>> selectors)
+    public void Compress(Span<byte> memory, IEnumerable<Func<PixelRgb, double>> selectors)
     {
         var i = 0;
         foreach (var selector in selectors)
         {
             PutSubMatrix(selector);
             DCT.DCT2D(_subMatrix, _dctBuffer);
-            PutQuantized(_dctBuffer, _bytesBuffer, DCT.Size, _quality);
+            PutQuantized(_dctBuffer, _bytesBuffer, _quality);
             ZigZagScan(_bytesBuffer, _zigZagBuffer);
             var start = (i * DCT.Size * DCT.Size);
             _zigZagBuffer.CopyTo(memory[start..]);
@@ -124,14 +124,15 @@ public class DctCompressor
         output[63] = channelFreqs[7, 7];
     }
 
-    private static void PutQuantized(double[,] channelFreqs, byte[,] output, int size, int quality)
+    private static void PutQuantized(double[] channelFreqs, byte[,] output, int quality)
     {
         var quantizationMatrix = QuantizationMatrixHelper.GetQuantizationMatrix(quality);
+        const int size = DCT.Size;
         for(var y = 0; y < size; y++)
         {
             for(var x = 0; x < size; x++)
             {
-                output[y, x] = (byte)(channelFreqs[y, x] / quantizationMatrix[y, x]);
+                output[y, x] = (byte)(channelFreqs[y * size +  x] / quantizationMatrix[y, x]);
             }
         }
     }
