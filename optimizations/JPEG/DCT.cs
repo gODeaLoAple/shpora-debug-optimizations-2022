@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Data;
 
 namespace JPEG
 {
     public class DCT
     {
         public const int Size = 8;
+        public const int SquareSize = Size * Size;
         private static readonly double Sqrt2Reversed = 1 / Math.Sqrt(2);
 
         public static readonly double[,] BasisFunction;
@@ -21,31 +23,34 @@ namespace JPEG
             }
         }
         
-        public static void DCT2D(double[,] input, double[,] output, double[,] cacheG)
+        public static void DCT2D(double[] input, double[,] output, double[,] cacheG)
         {
-            var height = input.GetLength(0);
-            var width = input.GetLength(1);
+            var height = Size;
+            var width = Size;
             var beta = Beta(height, width);
-
+            
             for (var v = 0; v < height; ++v)
             {
+                var A = beta * Alpha(v);
                 for (var u = 0; u < width; ++u)
                 {
                     var s = 0d;
                     
                     for (var y = 0; y < height; ++y)
                     {
+                        var offset = y * Size;
+                        var value = cacheG[y, v];
                         for (var x = 0; x < width; ++x)
                         {
-                            s += input[x, y] * cacheG[x, u] * cacheG[y, v];
+                            s += input[x + offset] * cacheG[x, u] * value;
                         }
                     }
                 
-                    output[u, v] = s * beta  * Alpha(u) * Alpha(v);
+                    output[u, v] = s * A * Alpha(u);
                 }
             }
         }
-
+        
         public static void IDCT2D(double[,] input, double[,] output, double[,] cacheG)
         {
             var width = input.GetLength(1);

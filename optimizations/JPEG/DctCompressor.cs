@@ -7,27 +7,26 @@ namespace JPEG;
 public class DctCompressor
 {
     private readonly int _quality;
-    private readonly double[,] _subMatrix;
+    private readonly double[] _subMatrix;
     private readonly double[,] _dctBuffer;
     private readonly byte[,] _bytesBuffer;
     private readonly byte[] _zigZagBuffer;
-    private readonly int _size;
-    public PixelRgb[,] PixelMap { get; }
+    public PixelRgb[] PixelMap { get; }
 
-    public DctCompressor(int size, int quality)
+    public DctCompressor(int quality)
     {
+        const int size = DCT.Size;
         _quality = quality;
-        _size = size;
-        _subMatrix = new double[size, size];
+        _subMatrix = new double[size * size];
         _dctBuffer = new double[size, size];
         _bytesBuffer =  new byte[size, size];
         _zigZagBuffer =  new byte[size * size];
-        PixelMap = new PixelRgb[size, size];
+        PixelMap = new PixelRgb[size * size];
         for (var y = 0; y < size; y++)
         {
             for (var x = 0; x < size; x++)
             {
-                PixelMap[y, x] = new PixelRgb();
+                PixelMap[y * size + x] = new PixelRgb();
             }
         }
     }
@@ -41,9 +40,9 @@ public class DctCompressor
         {
             PutSubMatrix(selector);
             DCT.DCT2D(_subMatrix, _dctBuffer, cacheG);
-            PutQuantized(_dctBuffer, _bytesBuffer, _size, _quality);
+            PutQuantized(_dctBuffer, _bytesBuffer, DCT.Size, _quality);
             ZigZagScan(_bytesBuffer, _zigZagBuffer);
-            var start = (i * _size * _size);
+            var start = (i * DCT.Size * DCT.Size);
             _zigZagBuffer.CopyTo(memory[start..]);
             ++i;
         }
@@ -51,9 +50,10 @@ public class DctCompressor
 
     private void PutSubMatrix(Func<PixelRgb, double> selector)
     {
-        for(var j = 0; j < _size; j++)
-        for(var i = 0; i < _size; i++)
-            _subMatrix[j, i] = selector(PixelMap[j, i]);
+        for (var n = 0; n < DCT.SquareSize; ++n)
+        {
+            _subMatrix[n] = selector(PixelMap[n]);
+        }
     }
     
     public static void ZigZagScan(byte[,] channelFreqs, byte[] output)

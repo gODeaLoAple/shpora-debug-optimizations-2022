@@ -20,8 +20,8 @@ namespace JPEG
 			{
 				Console.WriteLine(IntPtr.Size == 8 ? "64-bit version" : "32-bit version");
 				var sw = Stopwatch.StartNew();
-				var fileName = @"earth.bmp";
-				//var fileName = @"sample.bmp";
+				//var fileName = @"earth.bmp";
+				var fileName = @"sample.bmp";
 				//var fileName = @"MARBLES.bmp";
 				var compressedFileName = fileName + ".compressed." + CompressionQuality;
 				var uncompressedFileName = fileName + ".uncompressed." + CompressionQuality + ".bmp";
@@ -78,13 +78,13 @@ namespace JPEG
                 
                 if (!compressors.TryTake(out var compressor))
                 {
-                    compressor = new DctCompressor(DCT.Size, quality);
+                    compressor = new DctCompressor(quality);
                 }
 
                 var slice = allQuantizedBytesBuffer.AsSpan(n * length, length);
                 lock (matrix)
                 {
-                    matrix.PutPixels(compressor.PixelMap, x, y);
+                    matrix.PutPixels(compressor.PixelMap, x, y, DCT.Size, DCT.Size);
                 }
                 compressor.Compress(DCT.BasisFunction, slice, selectors);
                 

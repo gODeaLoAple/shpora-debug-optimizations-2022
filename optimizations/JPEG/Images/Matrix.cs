@@ -48,10 +48,8 @@ namespace JPEG.Images
             }
         }
         
-        public void PutPixels(PixelRgb[,] pixelMap, int x, int y)
+        public void PutPixels(PixelRgb[] pixelMap, int x, int y, int width, int height)
         {
-            var width = pixelMap.GetLength(1);
-            var height = pixelMap.GetLength(0);
             var bounds = new Rectangle(x, y, width, height);
             unsafe
             {
@@ -65,9 +63,9 @@ namespace JPEG.Images
                     for (var u = 0; u < bmd.Width; u++)
                     {
                         var p = shift + u * depth;
-                        pixelMap[v, u].R = p[0];
-                        pixelMap[v, u].G = p[1];
-                        pixelMap[v, u].B = p[2];
+                        pixelMap[v * width + u].R = p[0];
+                        pixelMap[v * width + u].G = p[1];
+                        pixelMap[v * width + u].B = p[2];
                     }
                 }
                 _bmp.UnlockBits(bmd);
