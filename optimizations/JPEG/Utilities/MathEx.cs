@@ -1,21 +1,24 @@
-﻿using System;
-using System.Linq;
+﻿
+using System;
 
 namespace JPEG.Utilities
 {
-    public static class MathEx
+    public struct MatrixIndexHelper
     {
-        public static double Sum(int from, int to, Func<int, double> function)
-            => Enumerable.Range(from, to - from).Sum(function);
+        private readonly int _width;
+        private readonly int _height;
 
-        public static double SumByTwoVariables(int from1, int to1, int from2, int to2, Func<int, int, double> function)
-            => Sum(from1, to1, x => Sum(from2, to2, y => function(x, y)));
+        public MatrixIndexHelper(int width, int height)
+        {
+            _width = width;
+            _height = height;
+        }
 
-        public static double LoopByTwoVariables(int from1, int to1, int from2, int to2, Action<int, int> function)
-            => Sum(from1, to1, x => Sum(from2, to2, y =>
-            {
-                function(x, y);
-                return 0;
-            }));
+        public int GetIndex(int x, int y)
+        {
+            return x + y * _width;
+        }
+
+        public (int, int) FromIndex(int n) => (n % _width, n / _width);
     }
 }

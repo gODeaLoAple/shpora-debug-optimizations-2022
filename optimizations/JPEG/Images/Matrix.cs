@@ -1,66 +1,88 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace JPEG.Images
 {
-    class Matrix
+    public class Matrix
     {
-        public readonly Pixel[,] Pixels;
+        private readonly Bitmap _bmp;
         public readonly int Height;
         public readonly int Width;
-				
-        public Matrix(int height, int width)
+
+        public Matrix(Bitmap bmp)
         {
-            Height = height;
-            Width = width;
-			
-            Pixels = new Pixel[height,width];
-            for(var i = 0; i< height; ++i)
-            for(var j = 0; j< width; ++j)
-                Pixels[i, j] = new Pixel(0, 0, 0, PixelFormat.RGB);
+            _bmp = bmp;
+            Width = _bmp.Width - _bmp.Width % 8;
+            Height = _bmp.Height - _bmp.Height % 8;
         }
 
-        public static explicit operator Matrix(Bitmap bmp)
+        public void SetPixels(int x, int y, PixelYCbCr[,] pixels)
         {
-            var height = bmp.Height - bmp.Height % 8;
-            var width = bmp.Width - bmp.Width % 8;
-            var matrix = new Matrix(height, width);
-
-            for(var j = 0; j < height; j++)
+            var width = pixels.GetLength(1);
+            var height = pixels.GetLength(0);
+            if (x + width > Width || y + height > Height)
             {
-                for(var i = 0; i < width; i++)
-                {
-                    var pixel = bmp.GetPixel(i, j);
-                    matrix.Pixels[j, i] = new Pixel(pixel.R, pixel.G, pixel.B, PixelFormat.RGB);
-                }
+                return;
             }
-
-            return matrix;
-        }
-
-        public static explicit operator Bitmap(Matrix matrix)
-        {
-            var bmp = new Bitmap(matrix.Width, matrix.Height);
-
-            for(var j = 0; j < bmp.Height; j++)
+            var bounds = new Rectangle(x, y, width, height);
+            unsafe
             {
-                for(var i = 0; i < bmp.Width; i++)
+                var bmd = _bmp.LockBits(bounds, ImageLockMode.ReadOnly, _bmp.PixelFormat);
+                var scan0 = (byte*)bmd.Scan0;
+                var stride = bmd.Stride;
+                var depth = Image.GetPixelFormatSize(bmd.PixelFormat) / 8; // TODO why?
+                for (var v = 0; v < height; v++)
                 {
-                    var pixel = matrix.Pixels[j, i];
-                    bmp.SetPixel(i, j, Color.FromArgb(ToByte(pixel.R), ToByte(pixel.G), ToByte(pixel.B)));
+                    var shift = scan0 + v * stride;
+                    for (var u = 0; u < width; u++)
+                    {
+                        var pixel = pixels[v, u];
+                        var p = shift + u * depth;
+                        p[0] = (byte)ToByte((int)(pixel.R));
+                        p[1] = (byte)ToByte((int)(pixel.G));
+                        p[2] = (byte)ToByte((int)(pixel.B));
+                    }
                 }
+                _bmp.UnlockBits(bmd);
             }
-
-            return bmp;
         }
-
+        
+        public void PutPixels(PixelRgb[,] pixelMap, int x, int y)
+        {
+            var width = pixelMap.GetLength(1);
+            var height = pixelMap.GetLength(0);
+            var bounds = new Rectangle(x, y, width, height);
+            unsafe
+            {
+                var bmd = _bmp.LockBits(bounds, ImageLockMode.ReadOnly, _bmp.PixelFormat);
+                var scan0 = (byte*)bmd.Scan0;
+                var stride = bmd.Stride;
+                var depth = Image.GetPixelFormatSize(bmd.PixelFormat) / 8;
+                for (var v = 0; v < bmd.Height; v++)
+                {
+                    var shift = scan0 + v * stride;
+                    for (var u = 0; u < bmd.Width; u++)
+                    {
+                        var p = shift + u * depth;
+                        pixelMap[v, u].R = p[0];
+                        pixelMap[v, u].G = p[1];
+                        pixelMap[v, u].B = p[2];
+                    }
+                }
+                _bmp.UnlockBits(bmd);
+            }
+        }
+        
         public static int ToByte(double d)
         {
             var val = (int) d;
-            if (val > byte.MaxValue)
-                return byte.MaxValue;
-            if (val < byte.MinValue)
-                return byte.MinValue;
-            return val;
+            return val switch
+            {
+                > byte.MaxValue => byte.MaxValue,
+                < byte.MinValue => byte.MinValue,
+                _               => val
+            };
         }
     }
 }
