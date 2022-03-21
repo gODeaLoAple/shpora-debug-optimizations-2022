@@ -39,7 +39,7 @@ public class DctCompressor
         foreach (var selector in selectors)
         {
             PutSubMatrix(selector);
-            DCT.DCT2D(_subMatrix, _dctBuffer, cacheG);
+            DCT.DCT2D(_subMatrix, _dctBuffer);
             PutQuantized(_dctBuffer, _bytesBuffer, DCT.Size, _quality);
             ZigZagScan(_bytesBuffer, _zigZagBuffer);
             var start = (i * DCT.Size * DCT.Size);

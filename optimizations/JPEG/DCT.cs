@@ -9,45 +9,54 @@ namespace JPEG
         public const int SquareSize = Size * Size;
         private static readonly double Sqrt2Reversed = 1 / Math.Sqrt(2);
 
-        public static readonly double[,] BasisFunction;
+        public static readonly double[,] F;
+
+        private static readonly double[] CacheDtc;
+        private static readonly double[] CacheInverseDtc;
 
         static DCT()
         {
-            BasisFunction = new double[Size, Size];
+            var f = new double[Size, Size];
             for (var u = 0; u < Size; ++u)
             {
                 for (var m = 0; m < Size; ++m)
                 {
-                    BasisFunction[u, m] = Math.Cos((2d * u + 1d) * m * Math.PI / (2 * Size));
+                    f[u, m] = Math.Cos((2d * u + 1d) * m * Math.PI / (2 * Size));
+                }
+            }
+
+            F = f;
+
+            var beta = Beta(Size, Size);
+            CacheDtc = new double[SquareSize * SquareSize];
+            CacheInverseDtc = new double[SquareSize * SquareSize];
+            for (var n = 0; n < SquareSize; ++n)
+            {
+                for (var m = 0; m < SquareSize; ++m)
+                {
+                    var x = n % Size;
+                    var y = n / Size;
+                    var u = m % Size;
+                    var v = m / Size;
+                    CacheDtc[m * SquareSize + n] = f[x, u] * f[y, v] * beta * Alpha(u) * Alpha(v);
+                    CacheInverseDtc[m + n * SquareSize] = f[u, x] * f[v, y] * beta * Alpha(x) * Alpha(y);
                 }
             }
         }
         
-        public static void DCT2D(double[] input, double[,] output, double[,] cacheG)
+        public static void DCT2D(double[] input, double[,] output)
         {
-            var height = Size;
-            var width = Size;
-            var beta = Beta(height, width);
-            
-            for (var v = 0; v < height; ++v)
+            for (var n = 0; n < SquareSize; n++)
             {
-                var A = beta * Alpha(v);
-                for (var u = 0; u < width; ++u)
+                var s = 0d;
+                var offset = n * SquareSize;
+
+                for (var m = 0; m < SquareSize; m++)
                 {
-                    var s = 0d;
-                    
-                    for (var y = 0; y < height; ++y)
-                    {
-                        var offset = y * Size;
-                        var value = cacheG[y, v];
-                        for (var x = 0; x < width; ++x)
-                        {
-                            s += input[x + offset] * cacheG[x, u] * value;
-                        }
-                    }
-                
-                    output[u, v] = s * A * Alpha(u);
-                }
+                    s += input[m] * CacheDtc[m + offset];
+;               }
+
+                output[n / Size, n % Size] = s;
             }
         }
         

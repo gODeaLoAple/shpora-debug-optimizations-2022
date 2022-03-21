@@ -36,7 +36,7 @@ namespace JPEG;
             var slice = decoded[start..end];
             ZigZagUnScan(slice, _zigZagBuffer);
             DeQuantize(_zigZagBuffer, _dequantizedBuffer, quality);
-            DCT.IDCT2D(_dequantizedBuffer, _channelBuffer, DCT.BasisFunction);
+            DCT.IDCT2D(_dequantizedBuffer, _channelBuffer, DCT.F);
             ShiftMatrixValues(_channelBuffer, _pixelMap, transform);
          }
 
