@@ -2,9 +2,9 @@
 
 public class PixelRgb
 {
-    public byte R { get; set; }
-    public byte G { get; set; }
-    public byte B { get; set; }
+    public byte R;
+    public byte G;
+    public byte B;
         
     public double Y => 16.0 + (65.738 * R + 129.057 * G + 24.064 * B) / 256.0;
     public double Cb => 128.0 + (-37.945 * R - 74.494 * G + 112.439 * B) / 256.0;

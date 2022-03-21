@@ -39,7 +39,6 @@ namespace JPEG;
             ShiftMatrixValues(_channelBuffer, _pixelMap, transform);
          }
 
-
          return _pixelMap;
      }
      

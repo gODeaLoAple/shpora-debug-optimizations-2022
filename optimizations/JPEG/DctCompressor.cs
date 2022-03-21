@@ -11,7 +11,7 @@ public class DctCompressor
     private readonly double[] _dctBuffer;
     private readonly byte[] _bytesBuffer;
     private readonly byte[] _zigZagBuffer;
-    public PixelRgb[] PixelMap { get; }
+    public PixelRgb[] PixelMap;
 
     public DctCompressor(int[] quantizationMatrix)
     {

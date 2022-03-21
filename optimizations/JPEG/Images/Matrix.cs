@@ -18,10 +18,6 @@ namespace JPEG.Images
 
         public void SetPixels( PixelYCbCr[] pixels, int x, int y, int width, int height)
         {
-            if (x + width > Width || y + height > Height)
-            {
-                return;
-            }
             var bounds = new Rectangle(x, y, width, height);
             unsafe
             {
