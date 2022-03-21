@@ -38,8 +38,9 @@ namespace JPEG
                     var y = n / Size;
                     var u = m % Size;
                     var v = m / Size;
-                    CacheDtc[m * SquareSize + n] = f[x, u] * f[y, v] * beta * Alpha(u) * Alpha(v);
-                    CacheInverseDtc[m  * SquareSize + n] = f[u, x] * f[v, y] * beta * Alpha(x) * Alpha(y);
+                    var index = m  * SquareSize + n;
+                    CacheDtc[index] = f[x, u] * f[y, v] * beta * Alpha(u) * Alpha(v);
+                    CacheInverseDtc[index] = f[u, x] * f[v, y] * beta * Alpha(x) * Alpha(y);
                 }
             }
         }
