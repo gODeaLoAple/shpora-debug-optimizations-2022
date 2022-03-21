@@ -6,15 +6,15 @@ namespace JPEG;
  public class DctDecompressor
  {
      private readonly byte[,] _zigZagBuffer;
-     private readonly double[,] _dequantizedBuffer;
+     private readonly double[] _dequantizedBuffer;
      private readonly PixelYCbCr[,] _pixelMap;
-     private readonly double[,] _channelBuffer;
+     private readonly double[] _channelBuffer;
 
      public DctDecompressor()
      {
          _zigZagBuffer = new byte[DCT.Size, DCT.Size];
-         _dequantizedBuffer = new double[DCT.Size, DCT.Size];
-         _channelBuffer = new double[DCT.Size, DCT.Size];
+         _dequantizedBuffer = new double[DCT.Size * DCT.Size];
+         _channelBuffer = new double[DCT.Size * DCT.Size];
          _pixelMap = new PixelYCbCr[DCT.Size, DCT.Size];
 
          for (var y = 0; y < DCT.Size; y++)
@@ -36,7 +36,7 @@ namespace JPEG;
             var slice = decoded[start..end];
             ZigZagUnScan(slice, _zigZagBuffer);
             DeQuantize(_zigZagBuffer, _dequantizedBuffer, quality);
-            DCT.IDCT2D(_dequantizedBuffer, _channelBuffer, DCT.F);
+            DCT.IDCT2D(_dequantizedBuffer, _channelBuffer);
             ShiftMatrixValues(_channelBuffer, _pixelMap, transform);
          }
 
@@ -112,19 +112,16 @@ namespace JPEG;
          output[7,7] = quantizedBytes[63];
      }
      
-     private static void ShiftMatrixValues(double[,] subMatrix, PixelYCbCr[,] pixelMap, Action<PixelYCbCr, double> action)
+     private static void ShiftMatrixValues(double[] subMatrix, PixelYCbCr[,] pixelMap, Action<PixelYCbCr, double> action)
      {
-         var height = subMatrix.GetLength(0);
-         var width = subMatrix.GetLength(1);
- 			
-         for(var y = 0; y < height; y++)
-         for (var x = 0; x < width; x++)
+         for(var y = 0; y < DCT.Size; y++)
+         for (var x = 0; x < DCT.Size; x++)
          {
-             action(pixelMap[y, x], subMatrix[y, x]);
+             action(pixelMap[y, x], subMatrix[y * DCT.Size + x]);
          }
      }
 
-     private static void DeQuantize(byte[,] quantizedBytes, double[,] output, int quality)
+     private static void DeQuantize(byte[,] quantizedBytes, double[] output, int quality)
      {
          var height = quantizedBytes.GetLength(0);
          var width = quantizedBytes.GetLength(1);
@@ -134,7 +131,7 @@ namespace JPEG;
          {
              for(var x = 0; x < width; x++)
              {
-                 output[y, x] = ((sbyte)quantizedBytes[y, x]) * quantizationMatrix[y, x];//NOTE cast to sbyte not to loose negative numbers
+                 output[y * width + x] = ((sbyte)quantizedBytes[y, x]) * quantizationMatrix[y, x];//NOTE cast to sbyte not to loose negative numbers
              }
          }
      }

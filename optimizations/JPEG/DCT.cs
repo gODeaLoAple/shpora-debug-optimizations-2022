@@ -39,7 +39,7 @@ namespace JPEG
                     var u = m % Size;
                     var v = m / Size;
                     CacheDtc[m * SquareSize + n] = f[x, u] * f[y, v] * beta * Alpha(u) * Alpha(v);
-                    CacheInverseDtc[m + n * SquareSize] = f[u, x] * f[v, y] * beta * Alpha(x) * Alpha(y);
+                    CacheInverseDtc[m  * SquareSize + n] = f[u, x] * f[v, y] * beta * Alpha(x) * Alpha(y);
                 }
             }
         }
@@ -60,27 +60,19 @@ namespace JPEG
             }
         }
         
-        public static void IDCT2D(double[,] input, double[,] output, double[,] cacheG)
+        public static void IDCT2D(double[] input, double[] output)
         {
-            var width = input.GetLength(1);
-            var height = input.GetLength(0);
-            var beta = Beta(height, width);
-
-            for (var y = 0; y < height; ++y)
+            for (var n = 0; n < SquareSize; n++)
             {
-                for (var x = 0; x < width; ++x)
-                {
-                    var s = 0d;
-                    for (var v = 0; v < height; ++v)
-                    {
-                        for (var u = 0; u < width; ++u)
-                        {
-                            s += input[u, v] * cacheG[x, u] * cacheG[y, v] * DCT.Alpha(u) * DCT.Alpha(v);
-                        }
-                    }
+                var offset = n * SquareSize;
+                var s = 0d;
 
-                    output[x, y] = s * beta;
+                for (var m = 0; m < SquareSize; m++)
+                {
+                    s += input[m] * CacheInverseDtc[m  + offset];
                 }
+                
+                output[n] = s;
             }
         }
 
