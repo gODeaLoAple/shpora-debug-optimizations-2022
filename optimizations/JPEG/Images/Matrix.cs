@@ -1,5 +1,4 @@
-﻿using System;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Drawing.Imaging;
 
 namespace JPEG.Images
@@ -17,10 +16,8 @@ namespace JPEG.Images
             Height = _bmp.Height - _bmp.Height % 8;
         }
 
-        public void SetPixels(int x, int y, PixelYCbCr[,] pixels)
+        public void SetPixels( PixelYCbCr[] pixels, int x, int y, int width, int height)
         {
-            var width = pixels.GetLength(1);
-            var height = pixels.GetLength(0);
             if (x + width > Width || y + height > Height)
             {
                 return;
@@ -35,9 +32,10 @@ namespace JPEG.Images
                 for (var v = 0; v < height; v++)
                 {
                     var shift = scan0 + v * stride;
+                    var offset = v * width;
                     for (var u = 0; u < width; u++)
                     {
-                        var pixel = pixels[v, u];
+                        var pixel = pixels[offset + u];
                         var p = shift + u * depth;
                         p[0] = (byte)ToByte((int)(pixel.R));
                         p[1] = (byte)ToByte((int)(pixel.G));

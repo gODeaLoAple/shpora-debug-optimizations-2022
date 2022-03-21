@@ -7,7 +7,7 @@ namespace JPEG;
  {
      private readonly byte[] _zigZagBuffer;
      private readonly double[] _dequantizedBuffer;
-     private readonly PixelYCbCr[,] _pixelMap;
+     private readonly PixelYCbCr[] _pixelMap;
      private readonly double[] _channelBuffer;
 
      public DctDecompressor()
@@ -15,18 +15,15 @@ namespace JPEG;
          _zigZagBuffer = new byte[DCT.Size * DCT.Size];
          _dequantizedBuffer = new double[DCT.Size * DCT.Size];
          _channelBuffer = new double[DCT.Size * DCT.Size];
-         _pixelMap = new PixelYCbCr[DCT.Size, DCT.Size];
+         _pixelMap = new PixelYCbCr[DCT.Size * DCT.Size];
 
-         for (var y = 0; y < DCT.Size; y++)
+         for (var i = 0; i < DCT.SquareSize; i++)
          {
-             for (var x = 0; x < DCT.Size; x++)
-             {
-                 _pixelMap[y, x] = new PixelYCbCr();
-             }
+             _pixelMap[i] = new PixelYCbCr();
          }
      }
      
-     public PixelYCbCr[,] Decompress(Span<byte> decoded, int quality, Action<PixelYCbCr, double>[] transforms)
+     public PixelYCbCr[] Decompress(Span<byte> decoded, int quality, Action<PixelYCbCr, double>[] transforms)
      {
          for (var i = 3 - 1; i >= 0; i--)
          {
@@ -112,12 +109,11 @@ namespace JPEG;
          output[7 * DCT.Size + 7] = quantizedBytes[63];
      }
      
-     private static void ShiftMatrixValues(double[] subMatrix, PixelYCbCr[,] pixelMap, Action<PixelYCbCr, double> action)
+     private static void ShiftMatrixValues(double[] subMatrix, PixelYCbCr[] pixelMap, Action<PixelYCbCr, double> action)
      {
-         for(var y = 0; y < DCT.Size; y++)
-         for (var x = 0; x < DCT.Size; x++)
+         for (var i = 0; i < DCT.SquareSize; i++)
          {
-             action(pixelMap[y, x], subMatrix[y * DCT.Size + x]);
+             action(pixelMap[i], subMatrix[i]);
          }
      }
 

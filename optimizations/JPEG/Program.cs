@@ -138,7 +138,7 @@ namespace JPEG
                 var pixelMap = decompressor.Decompress(part, image.Quality, transforms);
                 lock (matrix)
                 {
-                    matrix.SetPixels(x, y, pixelMap);
+                    matrix.SetPixels(pixelMap, x, y, DCT.Size, DCT.Size);
                 }
                 
                 decompressors.Add(decompressor);
