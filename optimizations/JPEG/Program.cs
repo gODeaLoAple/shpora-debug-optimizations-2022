@@ -70,7 +70,7 @@ namespace JPEG
             var pWidth = matrix.Width / DCT.Size;
             var pHeight = matrix.Height / DCT.Size;
             const int length = 3 * DCT.Size * DCT.Size;
-            
+            var quantizationMatrix = QuantizationMatrixHelper.GetQuantizationMatrix(quality);
             Parallel.For(0, pWidth * pHeight, n =>
             {
                 var x = n % pWidth * DCT.Size;
@@ -78,7 +78,7 @@ namespace JPEG
                 
                 if (!compressors.TryTake(out var compressor))
                 {
-                    compressor = new DctCompressor(quality);
+                    compressor = new DctCompressor(quantizationMatrix);
                 }
 
                 var slice = allQuantizedBytesBuffer.AsSpan(n * length, length);
@@ -123,7 +123,7 @@ namespace JPEG
             var pWidth = image.Width / DCT.Size;
             var pHeight = image.Height / DCT.Size;
             const int length = 3 * DCT.Size * DCT.Size;
-            
+            var quantizationMatrix = QuantizationMatrixHelper.GetQuantizationMatrix(image.Quality);
             Parallel.For(0, pWidth * pHeight, n =>
             {
                 var x = n % pWidth * DCT.Size;
@@ -131,11 +131,11 @@ namespace JPEG
 
                 if (!decompressors.TryTake(out var decompressor))
                 {
-                    decompressor = new DctDecompressor();
+                    decompressor = new DctDecompressor(quantizationMatrix);
                 }
 
                 var part = decoded.AsSpan(n * length, length);
-                var pixelMap = decompressor.Decompress(part, image.Quality, transforms);
+                var pixelMap = decompressor.Decompress(part, transforms);
                 lock (matrix)
                 {
                     matrix.SetPixels(pixelMap, x, y, DCT.Size, DCT.Size);

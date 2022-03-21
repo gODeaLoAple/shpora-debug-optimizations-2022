@@ -6,17 +6,17 @@ namespace JPEG;
 
 public class DctCompressor
 {
-    private readonly int _quality;
+    private readonly int[] _quantizationMatrix;
     private readonly double[] _subMatrix;
     private readonly double[] _dctBuffer;
     private readonly byte[] _bytesBuffer;
     private readonly byte[] _zigZagBuffer;
     public PixelRgb[] PixelMap { get; }
 
-    public DctCompressor(int quality)
+    public DctCompressor(int[] quantizationMatrix)
     {
         const int squaredSize = DCT.SquareSize;
-        _quality = quality;
+        _quantizationMatrix = quantizationMatrix;
         _subMatrix = new double[squaredSize];
         _dctBuffer = new double[squaredSize];
         _bytesBuffer =  new byte[squaredSize];
@@ -37,7 +37,7 @@ public class DctCompressor
         {
             PutSubMatrix(selector);
             DCT.DCT2D(_subMatrix, _dctBuffer);
-            PutQuantized(_dctBuffer, _bytesBuffer, _quality);
+            PutQuantized(_dctBuffer, _bytesBuffer, _quantizationMatrix);
             ZigZagScan(_bytesBuffer, _zigZagBuffer);
             var start = (i * DCT.Size * DCT.Size);
             _zigZagBuffer.CopyTo(memory[start..]);
@@ -121,9 +121,8 @@ public class DctCompressor
         output[63] = channelFreqs[7 * DCT.Size + 7];
     }
 
-    private static void PutQuantized(double[] channelFreqs, byte[] output, int quality)
+    private static void PutQuantized(double[] channelFreqs, byte[] output, int[] quantizationMatrix)
     {
-        var quantizationMatrix = QuantizationMatrixHelper.GetQuantizationMatrix(quality);
         for (var i = 0; i < DCT.SquareSize; i++)
         {
             output[i] = (byte)(channelFreqs[i] / quantizationMatrix[i]);
