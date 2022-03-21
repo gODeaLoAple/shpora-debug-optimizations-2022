@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace JPEG;
+namespace JPEG.Encoding;
 
 public class BitsWithLength
 {

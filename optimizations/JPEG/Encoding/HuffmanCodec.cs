@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace JPEG;
+namespace JPEG.Encoding;
 
 internal static class HuffmanCodec
 {
@@ -29,10 +28,11 @@ internal static class HuffmanCodec
     public static byte[] Decode(byte[] encodedData, Dictionary<BitsWithLength, byte> decodeTable, long bitsCount)
     {
         var result = new List<byte>();
-
+            
         byte decodedByte;
         var sample = new BitsWithLength { Bits = 0, BitsCount = 0 };
-        for(var byteNum = 0; byteNum < encodedData.Length; byteNum++)
+        var length = encodedData.Length;
+        for(var byteNum = 0; byteNum < length; byteNum++)
         {
             var b = encodedData[byteNum];
             for(var bitNum = 0; bitNum < 8 && byteNum * 8 + bitNum < bitsCount; bitNum++)

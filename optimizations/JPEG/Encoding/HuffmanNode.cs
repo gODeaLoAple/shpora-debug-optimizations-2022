@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace JPEG;
+namespace JPEG.Encoding;
 
 internal class HuffmanNode : IEquatable<HuffmanNode>, IComparable<HuffmanNode>, IComparable
 {
