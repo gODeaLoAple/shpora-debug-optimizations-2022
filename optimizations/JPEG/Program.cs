@@ -31,7 +31,7 @@ namespace JPEG
 				using (var bmp = (Bitmap)Image.FromStream(fileStream, false, false))
                 {
                     var sw2 = Stopwatch.StartNew();
-                    using var imageMatrix = new FastBitmap(bmp);
+                    var imageMatrix = new Matrix(bmp);
                     sw2.Stop();
                     Console.WriteLine(sw2.ElapsedMilliseconds);
     
@@ -58,7 +58,7 @@ namespace JPEG
 			}
 		}
 
-		private static CompressedImage Compress(FastBitmap fastBitmap, int quality = 50)
+		private static CompressedImage Compress(Matrix matrix, int quality = 50)
 		{
             var compressors = new ConcurrentBag<DctCompressor>();
             var selectors = new Func<PixelRgb, double>[]
@@ -67,9 +67,9 @@ namespace JPEG
                 p => p.Cb - 128,
                 p => p.Cr - 128
             };
-            var allQuantizedBytesBuffer = new byte[3 * fastBitmap.Width * fastBitmap.Height];
-            var pWidth = fastBitmap.Width / DCT.Size;
-            var pHeight = fastBitmap.Height / DCT.Size;
+            var allQuantizedBytesBuffer = new byte[3 * matrix.Width * matrix.Height];
+            var pWidth = matrix.Width / DCT.Size;
+            var pHeight = matrix.Height / DCT.Size;
             const int length = 3 * DCT.Size * DCT.Size;
             var quantizationMatrix = QuantizationMatrixHelper.GetQuantizationMatrix(quality);
             Parallel.For(0, pWidth * pHeight, n =>
@@ -83,9 +83,9 @@ namespace JPEG
                 }
 
                 var slice = allQuantizedBytesBuffer.AsSpan(n * length, length);
-                lock (fastBitmap)
+                lock (matrix)
                 {
-                    fastBitmap.PutPixels(compressor.PixelMap, x, y, DCT.Size, DCT.Size);
+                    matrix.PutPixels(compressor.PixelMap, x, y, DCT.Size, DCT.Size);
                 }
                 compressor.Compress(slice, selectors);
                 
@@ -101,15 +101,15 @@ namespace JPEG
                 CompressedBytes = compressedBytes, 
                 BitsCount = bitsCount,
                 DecodeTable = decodeTable,
-                Height = fastBitmap.Height, 
-                Width = fastBitmap.Width
+                Height = matrix.Height, 
+                Width = matrix.Width
             };
 		}
 		
         private static Bitmap Uncompress(CompressedImage image)
         {
             var bitmap = new Bitmap(image.Width, image.Height);
-            var matrix = new FastBitmap(bitmap);
+            var matrix = new Matrix(bitmap);
             var decoded = HuffmanCodec.Decode(image.CompressedBytes, image.DecodeTable, image.BitsCount);
             
             var transforms = new Action<PixelYCbCr, double>[]
