@@ -21,7 +21,7 @@ namespace JPEG.Images
             var bounds = new Rectangle(x, y, width, height);
             unsafe
             {
-                var bmd = _bmp.LockBits(bounds, ImageLockMode.ReadOnly, _bmp.PixelFormat);
+                var bmd = _bmp.LockBits(bounds, ImageLockMode.WriteOnly, _bmp.PixelFormat);
                 var scan0 = (byte*)bmd.Scan0;
                 var stride = bmd.Stride;
                 var depth = Image.GetPixelFormatSize(bmd.PixelFormat) / 8; // TODO why?
