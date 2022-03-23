@@ -45,7 +45,7 @@ namespace JPEG
                     @"sample.bmp",
                     @"MARBLES.bmp",
                 };
-				var fileName = files[1];
+				var fileName = files[0];
                 Console.WriteLine($"Image: {fileName}");
 				var compressedFileName = fileName + ".compressed." + CompressionQuality;
 				var uncompressedFileName = fileName + ".uncompressed." + CompressionQuality + ".bmp";
@@ -105,10 +105,7 @@ namespace JPEG
                 }
 
                 var slice = allQuantizedBytesBuffer.AsSpan(n * length, length);
-                lock (matrix)
-                {
-                    matrix.PutPixels(compressor.PixelMap, x, y, Size, Size);
-                }
+                matrix.PutPixels(compressor.PixelMap, x, y, Size, Size);
                 compressor.Compress(slice, selectors);
                 
                 compressors.Add(compressor);
@@ -159,10 +156,7 @@ namespace JPEG
 
                 var part = decoded.AsSpan(n * length, length);
                 var pixelMap = decompressor.Decompress(part, transforms);
-                lock (matrix)
-                {
-                    matrix.SetPixels(pixelMap, x, y, Size, Size);
-                }
+                matrix.SetPixels(pixelMap, x, y, Size, Size);
                 
                 decompressors.Add(decompressor);
             });
