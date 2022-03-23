@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Data;
+using System.Numerics;
 
 namespace JPEG
 {
@@ -8,8 +8,6 @@ namespace JPEG
         public const int Size = 8;
         public const int SquareSize = Size * Size;
         private static readonly double Sqrt2Reversed = 1 / Math.Sqrt(2);
-
-        public static readonly double[,] F;
 
         private static readonly double[] CacheDtc;
         private static readonly double[] CacheInverseDtc;
@@ -24,8 +22,6 @@ namespace JPEG
                     f[u, m] = Math.Cos((2d * u + 1d) * m * Math.PI / (2 * Size));
                 }
             }
-
-            F = f;
 
             var beta = Beta(Size, Size);
             CacheDtc = new double[SquareSize * SquareSize];
@@ -61,6 +57,26 @@ namespace JPEG
             }
         }
         
+        private static void DTF1D(Span<Complex> input, Span<Complex> output, int count = SquareSize, int offset = 1)
+        {
+            if (count == 1)
+            {
+                output[0] = input[0];
+            }
+            else
+            {
+                DTF1D(input, output, count / 2, 2 * offset);
+                DTF1D(input[offset..], output, count / 2, 2 * offset);
+                for (var k = 0; k < count / 2 - 1; k++)
+                {
+                    var p = output[k];
+                    var q = Complex.Exp(k * - 2 * Math.PI / count) * output[k + count / 2];
+                    output[k] = p + q;
+                    output[k + count / 2] = p - q;
+                }
+            }
+        }
+        
         public static void IDCT2D(double[] input, double[] output)
         {
             for (var n = 0; n < SquareSize; n++)
@@ -70,7 +86,7 @@ namespace JPEG
 
                 for (var m = 0; m < SquareSize; m++)
                 {
-                    s += input[m] * CacheInverseDtc[m  + offset];
+                    s += input[m] * CacheInverseDtc[m + offset];
                 }
                 
                 output[n] = s;

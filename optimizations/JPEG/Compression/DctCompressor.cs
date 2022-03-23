@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using JPEG.Images;
 
 namespace JPEG;
@@ -7,17 +8,19 @@ namespace JPEG;
 public class DctCompressor
 {
     private readonly int[] _quantizationMatrix;
-    private readonly double[] _subMatrix;
+    private readonly Complex[] _subMatrix;
     private readonly double[] _dctBuffer;
     private readonly byte[] _bytesBuffer;
     private readonly byte[] _zigZagBuffer;
+    private readonly Complex[] _buffer;
     public PixelRgb[] PixelMap;
 
     public DctCompressor(int[] quantizationMatrix)
     {
         const int squaredSize = DCT.SquareSize;
         _quantizationMatrix = quantizationMatrix;
-        _subMatrix = new double[squaredSize];
+        _buffer = new Complex[DCT.Size];
+        _subMatrix = new Complex[squaredSize];
         _dctBuffer = new double[squaredSize];
         _bytesBuffer =  new byte[squaredSize];
         _zigZagBuffer =  new byte[squaredSize];
@@ -28,15 +31,13 @@ public class DctCompressor
         }
     }
 
-
-
-    public void Compress(Span<byte> memory, IEnumerable<Func<PixelRgb, double>> selectors)
+    public void Compress(Span<byte> memory, ICollection<Func<PixelRgb, double>> selectors)
     {
         var i = 0;
         foreach (var selector in selectors)
         {
-            PutSubMatrix(selector);
-            DCT.DCT2D(_subMatrix, _dctBuffer);
+            PutSubMatrix(_subMatrix, PixelMap, selector);
+            FourierTransform.FFT2(_subMatrix, _dctBuffer, _buffer, DirectionFft.Forward);
             PutQuantized(_dctBuffer, _bytesBuffer, _quantizationMatrix);
             ZigZagScan(_bytesBuffer, _zigZagBuffer);
             var start = (i * DCT.Size * DCT.Size);
@@ -45,11 +46,11 @@ public class DctCompressor
         }
     }
 
-    private void PutSubMatrix(Func<PixelRgb, double> selector)
+    private static void PutSubMatrix(Complex[] subMatrix, PixelRgb[] pixelMap, Func<PixelRgb, double> selector)
     {
         for (var n = 0; n < DCT.SquareSize; ++n)
         {
-            _subMatrix[n] = selector(PixelMap[n]);
+            subMatrix[n] = selector(pixelMap[n]);
         }
     }
     

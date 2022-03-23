@@ -21,8 +21,8 @@ namespace JPEG
 			{
 				Console.WriteLine(IntPtr.Size == 8 ? "64-bit version" : "32-bit version");
 				var sw = Stopwatch.StartNew();
-				//var fileName = @"earth.bmp";
-				var fileName = @"sample.bmp";
+                //var fileName = @"earth.bmp";
+                var fileName = @"sample.bmp";
 				//var fileName = @"MARBLES.bmp";
 				var compressedFileName = fileName + ".compressed." + CompressionQuality;
 				var uncompressedFileName = fileName + ".uncompressed." + CompressionQuality + ".bmp";
