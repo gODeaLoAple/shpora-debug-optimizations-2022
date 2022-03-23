@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace JPEG;
+namespace JPEG.Compression.FFT;
 
 public static class FourierTransform
 {

@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Numerics;
+using JPEG.Utilities;
 
-namespace JPEG
+namespace JPEG.Compression.DCT
 {
     public class DiscretCosineTransform
     {
-        public const int Size = 8;
-        public const int SquareSize = Size * Size;
+        public const int Size = Chunk.Size;
+        public const int SquareSize = Chunk.SquaredSize;
         private static readonly double Sqrt2Reversed = 1 / Math.Sqrt(2);
 
         private static readonly double[] CacheDtc;

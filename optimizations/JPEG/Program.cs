@@ -5,15 +5,20 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using JPEG.Compression;
+using JPEG.Compression.DCT;
+using JPEG.Compression.FFT;
+using JPEG.Configuration;
 using JPEG.Encoding;
 using JPEG.Images;
+using JPEG.Utilities;
 
 namespace JPEG
 {
     class Program
 	{
 		const int CompressionQuality = 70;
-        private const int Size = DiscretCosineTransform.Size;
+        private const int Size = Chunk.Size;
 
         private static readonly CompressionConfiguration[] Configurations = {
             new(

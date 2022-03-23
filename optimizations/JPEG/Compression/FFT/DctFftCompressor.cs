@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
+using JPEG.Compression.DCT;
 using JPEG.Images;
 
-namespace JPEG;
+namespace JPEG.Compression.FFT;
 
 public class DctFftCompressor : BaseCompressor
 {
@@ -21,9 +23,9 @@ public class DctFftCompressor : BaseCompressor
         FourierTransform.FFT2(_subMatrix, output, _buffer, DirectionFft.Forward);
     }
 
-    private static void PutSubMatrix(PixelRgb[] pixelMap, Complex[] subMatrix, Func<PixelRgb, double> selector)
+    private static void PutSubMatrix(IReadOnlyList<PixelRgb> pixelMap, IList<Complex> subMatrix, Func<PixelRgb, double> selector)
     {
-        for (var n = 0; n < DiscretCosineTransform.SquareSize; ++n)
+        for (var n = 0; n < SquaredSize; ++n)
         {
             subMatrix[n] = selector(pixelMap[n]);
         }

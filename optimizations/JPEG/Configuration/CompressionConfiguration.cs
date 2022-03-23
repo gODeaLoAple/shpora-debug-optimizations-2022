@@ -1,4 +1,4 @@
-﻿namespace JPEG;
+﻿namespace JPEG.Configuration;
 
 internal class CompressionConfiguration
 {

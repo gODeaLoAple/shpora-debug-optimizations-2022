@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using JPEG.Images;
+using JPEG.Utilities;
 
-namespace JPEG;
+namespace JPEG.Compression;
 
 public abstract class BaseCompressor
 {
-    public const int SquaredSize = DiscretCosineTransform.SquareSize;
-    public const int Size = DiscretCosineTransform.Size;
+    public const int SquaredSize = Chunk.SquaredSize;
+    public const int Size = Chunk.Size;
     public readonly PixelRgb[] PixelMap;
     private readonly int[] _quantizationMatrix;
     private readonly byte[] _bytesBuffer;
@@ -42,7 +43,7 @@ public abstract class BaseCompressor
     }
 
     protected abstract void Compress(PixelRgb[] pixelMap, double[] output, Func<PixelRgb, double> selector);
-    private static void ZigZagScan(byte[] channelFreqs, byte[] output)
+    private static void ZigZagScan(IReadOnlyList<byte> channelFreqs, IList<byte> output)
     {
         output[0] = channelFreqs[0 *  Size + 0];
         output[1] = channelFreqs[0 *  Size + 1];
@@ -110,7 +111,7 @@ public abstract class BaseCompressor
         output[63] = channelFreqs[7 * Size + 7];
     }
 
-    private static void PutQuantized(double[] channelFreqs, byte[] output, int[] quantizationMatrix)
+    private static void PutQuantized(IReadOnlyList<double> channelFreqs, IList<byte> output, IReadOnlyList<int> quantizationMatrix)
     {
         for (var i = 0; i < SquaredSize; i++)
         {

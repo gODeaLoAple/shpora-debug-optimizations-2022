@@ -1,8 +1,8 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Numerics;
-using JPEG.Images;
+using JPEG.Compression.FFT;
 
-namespace JPEG;
+namespace JPEG.Compression.DCT;
 
 public class DctFftDecompressor : BaseDecompressor
  {
@@ -12,8 +12,8 @@ public class DctFftDecompressor : BaseDecompressor
 
      public DctFftDecompressor(int[] quantizationMatrix) : base(quantizationMatrix)
      {
-         _buffer = new Complex[DiscretCosineTransform.Size];
-         _dequantizedBuffer = new Complex[DiscretCosineTransform.Size * DiscretCosineTransform.Size];
+         _buffer = new Complex[Size];
+         _dequantizedBuffer = new Complex[SquaredSize];
      }
      
      public override void Decompress(byte[] zigZagBuffer, double[] channelBuffer, int[] quantizationMatrix)
@@ -22,9 +22,9 @@ public class DctFftDecompressor : BaseDecompressor
          FourierTransform.FFT2(_dequantizedBuffer, channelBuffer, _buffer, DirectionFft.Backward);
      }
      
-     private static void DeQuantize(byte[] quantizedBytes, Complex[] output, int[] quantizationMatrix)
+     private static void DeQuantize(IReadOnlyList<byte> quantizedBytes, IList<Complex> output, IReadOnlyList<int> quantizationMatrix)
      {
-         for (var i = 0; i < DiscretCosineTransform.SquareSize; i++)
+         for (var i = 0; i < SquaredSize; i++)
          {
              output[i] = ((sbyte)quantizedBytes[i]) * quantizationMatrix[i];//NOTE cast to sbyte not to loose negative numbers
          }

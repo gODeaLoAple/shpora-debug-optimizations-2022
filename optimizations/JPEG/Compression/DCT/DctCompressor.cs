@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using JPEG.Images;
 
-namespace JPEG;
+namespace JPEG.Compression.DCT;
 
 public class DctCompressor : BaseCompressor
 {
@@ -18,9 +19,9 @@ public class DctCompressor : BaseCompressor
         DiscretCosineTransform.DCT2D(_subMatrix, output);
     }
 
-    private static void PutSubMatrix(PixelRgb[] pixelMap, double[] subMatrix, Func<PixelRgb, double> selector)
+    private static void PutSubMatrix(IReadOnlyList<PixelRgb> pixelMap, IList<double> subMatrix, Func<PixelRgb, double> selector)
     {
-        for (var n = 0; n < DiscretCosineTransform.SquareSize; ++n)
+        for (var n = 0; n < SquaredSize; ++n)
         {
             subMatrix[n] = selector(pixelMap[n]);
         }

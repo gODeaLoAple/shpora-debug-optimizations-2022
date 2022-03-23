@@ -1,4 +1,7 @@
-﻿namespace JPEG;
+﻿using System.Collections.Generic;
+using JPEG.Compression.DCT;
+
+namespace JPEG.Compression.FFT;
 
 public class DctDecompressor : BaseDecompressor
 {
@@ -16,9 +19,9 @@ public class DctDecompressor : BaseDecompressor
         DiscretCosineTransform.IDCT2D(_dequantizedBuffer, channelBuffer);
     }
      
-    private static void DeQuantize(byte[] quantizedBytes, double[] output, int[] quantizationMatrix)
+    private static void DeQuantize(IReadOnlyList<byte> quantizedBytes, IList<double> output, IReadOnlyList<int> quantizationMatrix)
     {
-        for (var i = 0; i < DiscretCosineTransform.SquareSize; i++)
+        for (var i = 0; i < SquaredSize; i++)
         {
             output[i] = ((sbyte)quantizedBytes[i]) * quantizationMatrix[i];//NOTE cast to sbyte not to loose negative numbers
         }

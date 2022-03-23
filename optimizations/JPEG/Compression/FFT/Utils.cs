@@ -1,4 +1,4 @@
-﻿namespace JPEG;
+﻿namespace JPEG.Compression.FFT;
 
 public class Utils
 {

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using JPEG.Compression.DCT;
 
-namespace JPEG
+namespace JPEG.Utilities
 {
     public static class QuantizationMatrixHelper
     {
@@ -33,7 +34,7 @@ namespace JPEG
                 72, 92, 95, 98, 112, 100, 103, 99,
             };
 
-            for (var i = 0; i < DiscretCosineTransform.SquareSize; i++)
+            for (var i = 0; i < Chunk.SquaredSize; i++)
             {
                 result[i] = (multiplier * result[i] + 50) / 100;
             }

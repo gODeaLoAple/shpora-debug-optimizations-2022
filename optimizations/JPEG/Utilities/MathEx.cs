@@ -1,24 +1,8 @@
 ﻿
-using System;
+namespace JPEG.Utilities;
 
-namespace JPEG.Utilities
+public class Chunk
 {
-    public struct MatrixIndexHelper
-    {
-        private readonly int _width;
-        private readonly int _height;
-
-        public MatrixIndexHelper(int width, int height)
-        {
-            _width = width;
-            _height = height;
-        }
-
-        public int GetIndex(int x, int y)
-        {
-            return x + y * _width;
-        }
-
-        public (int, int) FromIndex(int n) => (n % _width, n / _width);
-    }
+    public const int Size = 8;
+    public const int SquaredSize = Size * Size;
 }
