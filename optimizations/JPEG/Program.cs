@@ -37,7 +37,7 @@ namespace JPEG
 			{
 				Console.WriteLine(IntPtr.Size == 8 ? "64-bit version" : "32-bit version");
 				var sw = Stopwatch.StartNew();
-                var configuration = Configurations[0];
+                var configuration = Configurations[1];
                 Console.WriteLine($"Algorithm: {configuration.Name}");
                 var files = new[]
                 {
@@ -45,7 +45,7 @@ namespace JPEG
                     @"sample.bmp",
                     @"MARBLES.bmp",
                 };
-				var fileName = files[0];
+				var fileName = files[1];
                 Console.WriteLine($"Image: {fileName}");
 				var compressedFileName = fileName + ".compressed." + CompressionQuality;
 				var uncompressedFileName = fileName + ".uncompressed." + CompressionQuality + ".bmp";
@@ -63,12 +63,12 @@ namespace JPEG
 				}
     
 				sw.Stop();
-				Console.WriteLine("Compression: " + sw.Elapsed);
+				Console.WriteLine("Compression: " + sw.ElapsedMilliseconds);
 				sw.Restart();
 				var compressedImage = CompressedImage.Load(compressedFileName);
                 var resultBmp = Uncompress(compressedImage, configuration.DecompressorFactory);
 				resultBmp.Save(uncompressedFileName, ImageFormat.Bmp);
-				Console.WriteLine("Decompression: " + sw.Elapsed);
+				Console.WriteLine("Decompression: " + sw.ElapsedMilliseconds);
 				Console.WriteLine($"Peak commit size: {MemoryMeter.PeakPrivateBytes() / (1024.0*1024):F2} MB");
 				Console.WriteLine($"Peak working set: {MemoryMeter.PeakWorkingSet() / (1024.0*1024):F2} MB");
 			}
@@ -76,7 +76,7 @@ namespace JPEG
 			{
 				Console.WriteLine(e);
 			}
-		}
+        }
 
 
         

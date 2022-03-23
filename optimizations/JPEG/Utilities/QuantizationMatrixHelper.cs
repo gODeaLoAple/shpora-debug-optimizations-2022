@@ -7,6 +7,7 @@ namespace JPEG.Utilities
     public static class QuantizationMatrixHelper
     {
         private static readonly ConcurrentDictionary<int, int[]> Cache = new();
+        
         public static int[] GetQuantizationMatrix(int quality)
         {
             if(quality is < 1 or > 99)

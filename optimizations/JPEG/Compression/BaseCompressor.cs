@@ -43,6 +43,7 @@ public abstract class BaseCompressor
     }
 
     protected abstract void Compress(PixelRgb[] pixelMap, double[] output, Func<PixelRgb, double> selector);
+    
     private static void ZigZagScan(IReadOnlyList<byte> channelFreqs, IList<byte> output)
     {
         output[0] = channelFreqs[0 *  Size + 0];

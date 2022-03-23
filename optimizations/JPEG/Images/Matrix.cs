@@ -16,7 +16,7 @@ namespace JPEG.Images
             Height = _bmp.Height - _bmp.Height % 8;
         }
 
-        public void SetPixels( PixelYCbCr[] pixels, int x, int y, int width, int height)
+        public void SetPixels(PixelYCbCr[] pixels, int x, int y, int width, int height)
         {
             var bounds = new Rectangle(x, y, width, height);
             unsafe

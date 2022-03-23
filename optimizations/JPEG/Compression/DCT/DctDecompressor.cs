@@ -23,7 +23,7 @@ public class DctDecompressor : BaseDecompressor
     {
         for (var i = 0; i < SquaredSize; i++)
         {
-            output[i] = ((sbyte)quantizedBytes[i]) * quantizationMatrix[i];//NOTE cast to sbyte not to loose negative numbers
+            output[i] = ((sbyte)quantizedBytes[i]) * quantizationMatrix[i]; //NOTE cast to sbyte not to loose negative numbers
         }
     }
 }
