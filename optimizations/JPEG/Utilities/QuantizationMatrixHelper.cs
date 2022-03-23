@@ -33,7 +33,7 @@ namespace JPEG
                 72, 92, 95, 98, 112, 100, 103, 99,
             };
 
-            for (var i = 0; i < DCT.SquareSize; i++)
+            for (var i = 0; i < DiscretCosineTransform.SquareSize; i++)
             {
                 result[i] = (multiplier * result[i] + 50) / 100;
             }

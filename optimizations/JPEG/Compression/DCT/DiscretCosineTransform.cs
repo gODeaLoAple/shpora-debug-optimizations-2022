@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace JPEG
 {
-    public class DCT
+    public class DiscretCosineTransform
     {
         public const int Size = 8;
         public const int SquareSize = Size * Size;
@@ -12,7 +12,7 @@ namespace JPEG
         private static readonly double[] CacheDtc;
         private static readonly double[] CacheInverseDtc;
 
-        static DCT()
+        static DiscretCosineTransform()
         {
             var f = new double[Size, Size];
             for (var u = 0; u < Size; ++u)
@@ -54,26 +54,6 @@ namespace JPEG
 ;               }
 
                 output[n] = s;
-            }
-        }
-        
-        private static void DTF1D(Span<Complex> input, Span<Complex> output, int count = SquareSize, int offset = 1)
-        {
-            if (count == 1)
-            {
-                output[0] = input[0];
-            }
-            else
-            {
-                DTF1D(input, output, count / 2, 2 * offset);
-                DTF1D(input[offset..], output, count / 2, 2 * offset);
-                for (var k = 0; k < count / 2 - 1; k++)
-                {
-                    var p = output[k];
-                    var q = Complex.Exp(k * - 2 * Math.PI / count) * output[k + count / 2];
-                    output[k] = p + q;
-                    output[k + count / 2] = p - q;
-                }
             }
         }
         

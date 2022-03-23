@@ -4,41 +4,56 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using JPEG.Encoding;
 using JPEG.Images;
 
 namespace JPEG
 {
-	class Program
+    class Program
 	{
 		const int CompressionQuality = 70;
+        private const int Size = DiscretCosineTransform.Size;
 
-		static void Main(string[] args)
+        private static readonly CompressionConfiguration[] Configurations = {
+            new(
+                "DCT",
+                matrix => new DctCompressor(matrix),
+                matrix => new DctDecompressor(matrix)),
+            new(
+                "FFT",
+                matrix => new DctFftCompressor(matrix),
+                matrix => new DctFftDecompressor(matrix)),
+        };
+        
+        static void Main(string[] args)
 		{
 			try
 			{
 				Console.WriteLine(IntPtr.Size == 8 ? "64-bit version" : "32-bit version");
 				var sw = Stopwatch.StartNew();
-                //var fileName = @"earth.bmp";
-                var fileName = @"sample.bmp";
-				//var fileName = @"MARBLES.bmp";
+                var configuration = Configurations[0];
+                Console.WriteLine($"Algorithm: {configuration.Name}");
+                var files = new[]
+                {
+                    @"earth.bmp",
+                    @"sample.bmp",
+                    @"MARBLES.bmp",
+                };
+				var fileName = files[0];
+                Console.WriteLine($"Image: {fileName}");
 				var compressedFileName = fileName + ".compressed." + CompressionQuality;
 				var uncompressedFileName = fileName + ".uncompressed." + CompressionQuality + ".bmp";
 				
 				using (var fileStream = File.OpenRead(fileName))
 				using (var bmp = (Bitmap)Image.FromStream(fileStream, false, false))
                 {
-                    var sw2 = Stopwatch.StartNew();
                     var imageMatrix = new Matrix(bmp);
-                    sw2.Stop();
-                    Console.WriteLine(sw2.ElapsedMilliseconds);
     
 					sw.Stop();
 					Console.WriteLine($"{bmp.Width}x{bmp.Height} - {fileStream.Length / (1024.0 * 1024):F2} MB");
 					sw.Start();
-					var compressionResult = Compress(imageMatrix, CompressionQuality);
+					var compressionResult = Compress(imageMatrix, configuration.CompressorFactory, CompressionQuality);
 					compressionResult.Save(compressedFileName);
 				}
     
@@ -46,7 +61,7 @@ namespace JPEG
 				Console.WriteLine("Compression: " + sw.Elapsed);
 				sw.Restart();
 				var compressedImage = CompressedImage.Load(compressedFileName);
-                var resultBmp = Uncompress(compressedImage);
+                var resultBmp = Uncompress(compressedImage, configuration.DecompressorFactory);
 				resultBmp.Save(uncompressedFileName, ImageFormat.Bmp);
 				Console.WriteLine("Decompression: " + sw.Elapsed);
 				Console.WriteLine($"Peak commit size: {MemoryMeter.PeakPrivateBytes() / (1024.0*1024):F2} MB");
@@ -58,9 +73,11 @@ namespace JPEG
 			}
 		}
 
-		private static CompressedImage Compress(Matrix matrix, int quality = 50)
+
+        
+		private static CompressedImage Compress(Matrix matrix, CompressorFactory factory, int quality = 50)
 		{
-            var compressors = new ConcurrentBag<DctCompressor>();
+            var compressors = new ConcurrentBag<BaseCompressor>();
             var selectors = new Func<PixelRgb, double>[]
             {
                 p => p.Y - 128,
@@ -68,24 +85,24 @@ namespace JPEG
                 p => p.Cr - 128
             };
             var allQuantizedBytesBuffer = new byte[3 * matrix.Width * matrix.Height];
-            var pWidth = matrix.Width / DCT.Size;
-            var pHeight = matrix.Height / DCT.Size;
-            const int length = 3 * DCT.Size * DCT.Size;
+            var pWidth = matrix.Width / Size;
+            var pHeight = matrix.Height / Size;
+            const int length = 3 * Size * Size;
             var quantizationMatrix = QuantizationMatrixHelper.GetQuantizationMatrix(quality);
             Parallel.For(0, pWidth * pHeight, n =>
             {
-                var x = n % pWidth * DCT.Size;
-                var y = n / pWidth * DCT.Size;
+                var x = n % pWidth * Size;
+                var y = n / pWidth * Size;
                 
                 if (!compressors.TryTake(out var compressor))
                 {
-                    compressor = new DctCompressor(quantizationMatrix);
+                    compressor = factory(quantizationMatrix);
                 }
 
                 var slice = allQuantizedBytesBuffer.AsSpan(n * length, length);
                 lock (matrix)
                 {
-                    matrix.PutPixels(compressor.PixelMap, x, y, DCT.Size, DCT.Size);
+                    matrix.PutPixels(compressor.PixelMap, x, y, Size, Size);
                 }
                 compressor.Compress(slice, selectors);
                 
@@ -106,7 +123,7 @@ namespace JPEG
             };
 		}
 		
-        private static Bitmap Uncompress(CompressedImage image)
+        private static Bitmap Uncompress(CompressedImage image, DecompressorFactory factory)
         {
             var bitmap = new Bitmap(image.Width, image.Height);
             var matrix = new Matrix(bitmap);
@@ -119,27 +136,27 @@ namespace JPEG
                 (p, v) => p.Cr = v + 128,
             };
 
-            var decompressors = new ConcurrentBag<DctDecompressor>();
+            var decompressors = new ConcurrentBag<BaseDecompressor>();
 
-            var pWidth = image.Width / DCT.Size;
-            var pHeight = image.Height / DCT.Size;
-            const int length = 3 * DCT.Size * DCT.Size;
+            var pWidth = image.Width / Size;
+            var pHeight = image.Height / Size;
+            const int length = 3 * Size * Size;
             var quantizationMatrix = QuantizationMatrixHelper.GetQuantizationMatrix(image.Quality);
             Parallel.For(0, pWidth * pHeight, n =>
             {
-                var x = n % pWidth * DCT.Size;
-                var y = n / pWidth * DCT.Size;
+                var x = n % pWidth * Size;
+                var y = n / pWidth * Size;
 
                 if (!decompressors.TryTake(out var decompressor))
                 {
-                    decompressor = new DctDecompressor(quantizationMatrix);
+                    decompressor = factory(quantizationMatrix);
                 }
 
                 var part = decoded.AsSpan(n * length, length);
                 var pixelMap = decompressor.Decompress(part, transforms);
                 lock (matrix)
                 {
-                    matrix.SetPixels(pixelMap, x, y, DCT.Size, DCT.Size);
+                    matrix.SetPixels(pixelMap, x, y, Size, Size);
                 }
                 
                 decompressors.Add(decompressor);
